@@ -1,32 +1,50 @@
 // 互動實驗、動畫模擬、生活應用卡片與自學資源的互動邏輯。
 
 export function initInteractions() {
-  // 3. 互動實驗：滑桿即時驅動 SVG。
+  // 3. 互動實驗：陽光滑桿即時驅動植物生長。
   const slider = document.getElementById("demo-slider");
   const bar = document.getElementById("demo-bar");
-  const level = document.getElementById("demo-level");
+  const crown = document.getElementById("demo-crown");
+  const leafL = document.getElementById("demo-leaf-l");
+  const leafR = document.getElementById("demo-leaf-r");
+  const sun = document.getElementById("demo-sun");
   const readout = document.getElementById("demo-readout");
-  if (slider && bar && level && readout) {
+  if (slider && bar && crown && readout) {
+    const base = 100;                  // 土面 y 座標
     const update = () => {
       const v = Number(slider.value);
-      const h = 10 + v * 0.7;          // 條高隨數值變化
-      bar.setAttribute("y", 90 - h);
+      const h = 18 + v * 0.62;          // 莖高隨陽光變高（18～80）
+      const top = base - h;             // 莖頂 y 座標
+      bar.setAttribute("y", top);
       bar.setAttribute("height", h);
-      const y = 90 - h;                // 水位線跟著條頂
-      level.setAttribute("y1", y);
-      level.setAttribute("y2", y);
+      // 顏色：陽光少→偏黃（徒長），陽光多→深綠
+      const r = Math.round(180 - v * 1.5);   // 180→30
+      const g = Math.round(150 + v * 0.25);  // 150→175
+      const b = Math.round(90 - v * 0.5);    // 90→40
+      const color = `rgb(${r}, ${g}, ${b})`;
+      crown.setAttribute("cy", top - 2);
+      crown.setAttribute("fill", color);
+      if (leafL) { leafL.setAttribute("cy", top + 14); leafL.setAttribute("fill", color); }
+      if (leafR) { leafR.setAttribute("cy", top + 14); leafR.setAttribute("fill", color); }
+      if (sun) sun.setAttribute("opacity", String(0.25 + v / 130));
       readout.textContent = v;
     };
     slider.addEventListener("input", update);
     update();
   }
 
-  // 4. 動畫模擬：分階段切換，不讓所有元素同時動。
+  // 4. 動畫模擬：植物的一生，分階段切換。
   const scene = document.getElementById("sim-scene");
   const play = document.getElementById("sim-play");
   const caption = document.getElementById("sim-caption");
   if (scene && play && caption) {
-    const stages = ["階段 1：起始狀態", "階段 2：板塊互相推擠", "階段 3：地表被抬升"];
+    const stages = [
+      "階段 1：種子在土裡，等待水分與溫度",
+      "階段 2：種子發芽，向下長根、向上長芽",
+      "階段 3：長出莖和葉，開始行光合作用",
+      "階段 4：開花，準備授粉",
+      "階段 5：結成果實，裡面藏著新的種子",
+    ];
     play.addEventListener("click", () => {
       const next = (Number(scene.dataset.stage) + 1) % stages.length;
       scene.dataset.stage = String(next);
